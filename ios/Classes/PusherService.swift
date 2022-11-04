@@ -6,7 +6,7 @@
 //
 
 import Flutter
-import PusherSwiftWithEncryption
+import PusherSwift
 
 class PusherService: MChannel {
     static let CHANNEL_NAME = "com.github.chinloyal/pusher_client"
@@ -122,7 +122,15 @@ class PusherService: MChannel {
         if(!channelName.starts(with: PusherService.PRESENCE_PREFIX)) {
             channel = _pusherInstance.subscribe(channelName)
         } else {
-            channel = _pusherInstance.subscribeToPresenceChannel(channelName: channelName)
+                        channel = _pusherInstance.subscribeToPresenceChannel(
+                channelName: channelName,
+                onMemberAdded: { (member: PusherPresenceChannelMember) in
+                    ChannelEventListener.default.onMemberAdded(channelName: channelName, member: member)
+                },
+                onMemberRemoved: { (member: PusherPresenceChannelMember) in
+                    ChannelEventListener.default.onMemberRemoved(channelName: channelName, member: member)
+                }
+            )
             for pEvent in Constants.PresenceEvents.allCases {
                 channel.bind(eventName: pEvent.rawValue, eventCallback: ChannelEventListener.default.onEvent)
             }
